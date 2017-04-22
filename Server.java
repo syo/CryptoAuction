@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 
 public class Server {
 	private static final int portno=9091;
-	private static final int numBidders=4;
+	private static final int numBidders=3;
 	private static ArrayList<Socket> clients;
 	private static ServerSocket serverSocket;
 	private static PaillierPublicKey[] pk;
