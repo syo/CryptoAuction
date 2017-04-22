@@ -15,9 +15,11 @@ import java.nio.ByteBuffer;
 public class Server {
 	private static final int portno=9091;
 	private static final int numBidders=3;
-	private static ArrayList<Socket> clients;
+	private static Socket auctioneer;
+	private static ArrayList<Socket> bidders;
 	private static ServerSocket serverSocket;
 	private static PaillierPublicKey[] pk;
+	private static PaillierPublicKey auctioneer_pk;
 	
 	//
 	// Server helper methods
@@ -27,30 +29,43 @@ public class Server {
 		System.out.println("The server will now terminate.");
 		throw(new RuntimeException());
 	}
-	//Attempt to receive a BigInteger from the specified client after encrypting it. 
+	//Attempt to send a BigInteger to the specified socket. 
 	//Throws an error and terminates if not successful.
-	private static BigInteger readFromClient(int clientNo) {
+	private static BigInteger readFromClient(Socket socket) {
 		BigInteger result=BigInteger.ZERO;
 		try {
-			InputStream stream=clients.get(clientNo).getInputStream();
+			InputStream stream=socket.getInputStream();
 			result=cryptoMessaging.recvBigInteger(stream);
 		} catch (IOException io) {
-			System.out.println("ERROR: IO Exception. Could read message from client "+clientNo);
+			System.out.println("ERROR: IO Exception. Could read message from client.");
 			giveUp();
 		}
 		return result;
 	}
-	//Attempt to write a BigInteger into the client's socket. Throws an error and terminates if not successful.
-	private static void sendToClient(int clientNo,BigInteger msg) {
-		msg=pk[clientNo].encrypt(msg)[0];
+	//Attempt receive a BigInteger from the specified socket.
+	private static void sendToClient(Socket socket,BigInteger msg) {
 		try {
-			OutputStream stream=clients.get(clientNo).getOutputStream();
+			OutputStream stream=socket.getOutputStream();
 			cryptoMessaging.sendBigInteger(stream,msg);
 		} catch (IOException io) {
-			System.out.println("ERROR: IO Exception. Could not send message to client "+clientNo);
+			System.out.println("ERROR: IO Exception. Could not send message to client.");
 			giveUp();
 		}
 	}
+	// Encrypt a message and send it to the specified bidder.
+	private static void sendToBidder(int clientNo, BigInteger msg) {
+		msg=pk[clientNo].encrypt(msg)[0];
+		sendToClient(bidders.get(clientNo),msg);
+	}
+	private static void SendToAuctioneer(BigInteger msg) {
+		msg=auctioneer_pk.encrypt(msg)[0];
+		sendToClient(auctioneer,msg);
+	}
+	// Receive a message from the specified bidder.
+	private static BigInteger recvFromBidder(int bidderNo) {
+		return readFromClient(bidders.get(bidderNo));
+	}
+	
 	//Return true if this client is valid. Return false if not.
 	private static boolean verify(Socket s) {
 		//TODO: Implement this.
@@ -61,14 +76,16 @@ public class Server {
 		return null;
 		
 	}
-	//Get sockets to all clients. These clients should be verified before proceeding.
+	//Get sockets to all bidders and auctioneer. These should be verified before proceeding.
 	private static void getClients() throws IOException {
-		clients=new ArrayList<Socket>();
+		bidders=new ArrayList<Socket>();
 		serverSocket=new ServerSocket(portno);
-		while (clients.size()<numBidders) {
+		while ((bidders.size()<numBidders)&&(auctioneer==null)) {
 			Socket temp=serverSocket.accept();
-			//if (verify(temp))
-				clients.add(temp);
+			//if (this client is a bidder)
+				bidders.add(temp);
+			//if (this client is the auctioneer)
+				auctioneer=temp;
 		}
 	}
 	//For testing the server. Should not be called otherwise.
@@ -96,7 +113,7 @@ public class Server {
 		try {
 			getClients();
 		} catch (IOException e) {
-			System.out.println("ERROR: IO Exception. Could not initialize clients.");
+			System.out.println("ERROR: IO Exception. Could not initialize bidders.");
 			giveUp();
 		}
 		Scanner scanner=new Scanner(System.in);
@@ -123,12 +140,14 @@ public class Server {
 		//Alert the winner that they won (if a winner exists) and notify them of the price.
 		for (int x=0;x<numBidders;x++) {
 			if (winnerIndex==x) {
-				sendToClient(x,price);
+				sendToBidder(x,price);
+				SendToAuctioneer(BigInteger.valueOf(x));
 			}
 			else {
-				sendToClient(x,BigInteger.ZERO);
+				sendToBidder(x,BigInteger.ZERO);
 			}
 		}
+		SendToAuctioneer(price);
 		System.out.println("Auction complete. The server will now terminate.");
 	}
 }
