@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 
 public class Server {
 	private static final int portno=9091;
+	private static final int numBidders=4;
 	private static ArrayList<Socket> clients;
 	private static ServerSocket serverSocket;
 	private static PaillierPublicKey[] pk;
@@ -64,7 +65,7 @@ public class Server {
 	private static void getClients() throws IOException {
 		clients=new ArrayList<Socket>();
 		serverSocket=new ServerSocket(portno);
-		while (clients.size()<4) {
+		while (clients.size()<numBidders) {
 			Socket temp=serverSocket.accept();
 			//if (verify(temp))
 				clients.add(temp);
@@ -103,9 +104,9 @@ public class Server {
 		BigInteger[] bids=getBids();
 		BigInteger highest=askingPrice;
 		BigInteger price=askingPrice;
-		int winnerIndex=4;
+		int winnerIndex=numBidders;
 		//Determine the winner and the price of the item
-		for (int x=0;x<4;x++) {
+		for (int x=0;x<numBidders;x++) {
 			if (bids[x].compareTo(highest)>0) {
 				price=highest;
 				winnerIndex=x;
@@ -120,7 +121,7 @@ public class Server {
 		System.out.println("The winner is client # "+winnerIndex+" who bid "+highest);
 		System.out.println("The price of the item shall be "+price);
 		//Alert the winner that they won (if a winner exists) and notify them of the price.
-		for (int x=0;x<4;x++) {
+		for (int x=0;x<numBidders;x++) {
 			if (winnerIndex==x) {
 				sendToClient(x,price);
 			}
