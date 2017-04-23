@@ -108,7 +108,6 @@ public class Server {
 	}
 	public static void main(String[] args) {
 		testServer();
-		System.out.println("Enter asking price:");
 		System.out.println("Server started up. Listening for connections on port "+portno);
 		try {
 			getClients();
@@ -117,8 +116,9 @@ public class Server {
 			giveUp();
 		}
 		Scanner scanner=new Scanner(System.in);
-		BigInteger askingPrice=BigInteger.valueOf(Integer.parseInt(scanner.nextLine()));
 		BigInteger[] bids=getBids();
+		//TODO: Get starting price
+		
 		BigInteger highest=askingPrice;
 		BigInteger price=askingPrice;
 		int winnerIndex=numBidders;
@@ -147,7 +147,13 @@ public class Server {
 				sendToBidder(x,BigInteger.ZERO);
 			}
 		}
-		SendToAuctioneer(price);
+		if (winnerIndex==numBidders) {
+			SendToAuctioneer(BigInteger.valueOf(numBidders));
+			SendToAuctioneer(BigInteger.ZERO);
+		}
+		else {
+			SendToAuctioneer(price);
+		}
 		System.out.println("Auction complete. The server will now terminate.");
 	}
 }
