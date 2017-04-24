@@ -121,6 +121,10 @@ public abstract class Client {
 		clientSigs[0] = cryptoMessaging.recvPublicKey(s.getInputStream());
 		clientSigs[1] = cryptoMessaging.recvPublicKey(s.getInputStream());
 		clientSigs[2] = cryptoMessaging.recvPublicKey(s.getInputStream());
+		
+		//send paillier public key
+		cryptoMessaging.sendPaillier(s.getOutputStream(), keys.getPublicKey());
+				
 		// sign starting price
 		BigInteger startingprice = BigInteger.valueOf(20); //arbitrary for now
 		byte[] sigbytes = sign(startingprice, pair.getPrivate());
