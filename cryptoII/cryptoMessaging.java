@@ -5,8 +5,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 import de.henku.jpaillier.PaillierPublicKey;
 
@@ -40,10 +45,15 @@ public class cryptoMessaging {
 	}
 
 	//Read a PublicKey from the stream.
-	public static PublicKey recvPublicKey(InputStream stream) throws IOException {
-		int size=recvInt(stream);
+	public static PublicKey recvPublicKey(InputStream stream) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		byte[] byteKey = recvByteArr(stream);
+        X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
+        KeyFactory kf = KeyFactory.getInstance("DSA", "SUN");
+
+        return kf.generatePublic(X509publicKey);
+		/*int size=recvInt(stream);
 		byte[] me=demandBytes(stream,size);
-		return new PublicKey(me);
+		return new PublicKey(me);*/
 	}
 	
 	// Read a PaillerPublicKey
@@ -84,11 +94,13 @@ public class cryptoMessaging {
 
 	//Write a PublicKey to the stream.
 	public static void sendPublicKey(OutputStream o, PublicKey msg) throws IOException {
-		byte[] me=((BigInteger) msg).toByteArray();
+        byte[] byteKey = msg.getEncoded();
+        sendByteArr(o, byteKey);
+		/*byte[] me= msg.toByteArray();
 		int msgSize=me.length;
 		sendInt(o,msgSize);
 		o.write(me);
-		o.flush();
+		o.flush();*/
 	}
 	
 	//Write a byte[] to the stream.

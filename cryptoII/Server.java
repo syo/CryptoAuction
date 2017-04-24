@@ -11,9 +11,11 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.spec.InvalidKeySpecException;
 
 public class Server {
 	private static final int portno=9091;
@@ -208,7 +210,7 @@ public class Server {
 	}
 
 	// Exchange public digital signature keys between server and clients 
-	private static void keyExchange() throws IOException {
+	private static void keyExchange() throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		//receive from server
 		PublicKey keyserver = cryptoMessaging.recvPublicKey(auctioneer.getInputStream());
 		//receive from clients
