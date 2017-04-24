@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 
 import java.security.PublicKey;
 
+import de.henku.jpaillier.PaillierPublicKey;
+
 public class cryptoMessaging {
 	//
 	// INPUT HANDLERS
@@ -42,6 +44,15 @@ public class cryptoMessaging {
 		int size=recvInt(stream);
 		byte[] me=demandBytes(stream,size);
 		return new PublicKey(me);
+	}
+	
+	// Read a PaillerPublicKey
+	public static PaillierPublicKey recvPaillier(InputStream stream) throws IOException {
+		int bits=recvInt(stream);
+		BigInteger n = recvBigInteger(stream);
+		BigInteger nSquared = recvBigInteger(stream);
+		BigInteger g = recvBigInteger(stream);
+		return new PaillierPublicKey(n, nSquared, g, bits);
 	}
 
 	//Read a byte[] from the stream.
@@ -86,5 +97,13 @@ public class cryptoMessaging {
 		sendInt(o,msgSize);
 		o.write(msg);
 		o.flush();
+	}
+	
+	// Write a PaillerPublicKey
+	public static void sendPaillier(OutputStream stream, PaillierPublicKey pk) throws IOException {
+		sendInt(stream, pk.getBits());
+		sendBigInteger(stream, pk.getN());
+		sendBigInteger(stream, pk.getnSquared());
+		sendBigInteger(stream, pk.getG());
 	}
 }

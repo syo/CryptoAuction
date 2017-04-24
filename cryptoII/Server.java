@@ -14,7 +14,6 @@ import java.nio.ByteBuffer;
 
 import java.security.PublicKey;
 import java.security.Signature;
-import java.security.KeyPair;
 
 public class Server {
 	private static final int portno=9091;
@@ -221,7 +220,7 @@ public class Server {
 			keyclients[i] = cryptoMessaging.recvPublicKey(stream);
 			biddersigs[i] = keyclients[i];
 		}
-		//send to server
+		//send to auctioneer
 		cryptoMessaging.sendPublicKey(auctioneer.getOutputStream(), keyclients[0]); 
 		cryptoMessaging.sendPublicKey(auctioneer.getOutputStream(), keyclients[1]); 
 		cryptoMessaging.sendPublicKey(auctioneer.getOutputStream(), keyclients[2]); 
@@ -229,6 +228,13 @@ public class Server {
 		cryptoMessaging.sendPublicKey((bidders.get(0)).getOutputStream(), keyserver); 
 		cryptoMessaging.sendPublicKey((bidders.get(1)).getOutputStream(), keyserver); 
 		cryptoMessaging.sendPublicKey((bidders.get(2)).getOutputStream(), keyserver); 
+		
+		
+		// now receive paillier public keys from bidders and auctioneer
+		auctioneer_pk = cryptoMessaging.recvPaillier(auctioneer.getInputStream());
+		pk[0] = cryptoMessaging.recvPaillier((bidders.get(0)).getInputStream());
+		pk[1] = cryptoMessaging.recvPaillier((bidders.get(1)).getInputStream());
+		pk[2] = cryptoMessaging.recvPaillier((bidders.get(2)).getInputStream());
 	}
 
 	//receive and distribute starting price

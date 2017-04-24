@@ -87,6 +87,10 @@ public abstract class Client {
 		cryptoMessaging.sendPublicKey(s.getOutputStream(), pair.getPublic());
 		// receive sig key for server
 		serverSig = cryptoMessaging.recvPublicKey(s.getInputStream());
+		
+		//send paillier public key
+		cryptoMessaging.sendPaillier(s.getOutputStream(), keys.getPublicKey());
+		
 		//receive starting price and verify it
 		BigInteger starting = cryptoMessaging.recvBigInteger(s.getInputStream());
 		byte[] signature = cryptoMessaging.recvByteArr(s.getInputStream());

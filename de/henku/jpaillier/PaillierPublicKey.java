@@ -19,7 +19,7 @@ public class PaillierPublicKey {
     private final BigInteger nSquared;
     private final BigInteger g;
 
-    PaillierPublicKey(BigInteger n, BigInteger nSquared, BigInteger g, int bits) {
+    public PaillierPublicKey(BigInteger n, BigInteger nSquared, BigInteger g, int bits) {
         this.n = n;
         this.nSquared = nSquared;
         this.bits = bits;
